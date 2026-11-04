@@ -1,0 +1,6 @@
+{
+  "name": "Shield VPN",
+  "description": "Fast, secure, and private VPN with global servers, Kill Switch, Threat Shield, and real-time network diagnostics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
