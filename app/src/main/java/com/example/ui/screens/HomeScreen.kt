@@ -34,17 +34,23 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.NetworkCheck
+import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.Public
-import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -61,7 +67,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.model.ConnectionStats
 import com.example.model.VpnState
 import com.example.ui.NavTab
 import com.example.ui.VpnUiState
@@ -73,7 +78,6 @@ import com.example.ui.theme.ShieldGreen
 import com.example.ui.theme.ShieldGreenGlow
 import com.example.ui.theme.ShieldNavyDark
 import com.example.ui.theme.ShieldRed
-import com.example.ui.theme.ShieldRedGlow
 import com.example.ui.theme.ShieldSurfaceDark
 import com.example.ui.theme.ShieldSurfaceElevated
 import com.example.ui.theme.ShieldSurfaceVariantDark
@@ -162,10 +166,10 @@ fun HomeScreen(
                             )
                         )
                         Text(
-                            text = if (isConnected) "PROTECTED & ENCRYPTED" else "TAP TO ACTIVATE SHIELD",
+                            text = if (isConnected) "ACTIVE TUNNEL • ZERO LEAKS" else "POWERED BY MOBILES",
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = if (isConnected) ShieldGreen else TextMuted
+                                color = if (isConnected) ShieldGreen else ShieldCyan
                             )
                         )
                     }
@@ -192,7 +196,7 @@ fun HomeScreen(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = if (isConnected) "SECURED" else "EXPOSED",
+                            text = if (isConnected) "SECURED" else "UNPROTECTED",
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontWeight = FontWeight.Black,
                                 color = if (isConnected) ShieldGreen else ShieldRed
@@ -203,13 +207,13 @@ fun HomeScreen(
             }
         }
 
-        item { Spacer(modifier = Modifier.height(28.dp)) }
+        item { Spacer(modifier = Modifier.height(24.dp)) }
 
         // Central Power Connect Button
         item {
             Box(
                 modifier = Modifier
-                    .size(230.dp)
+                    .size(220.dp)
                     .testTag("vpn_power_button"),
                 contentAlignment = Alignment.Center
             ) {
@@ -217,7 +221,7 @@ fun HomeScreen(
                 if (isConnected || isConnecting) {
                     Box(
                         modifier = Modifier
-                            .size(210.dp)
+                            .size(200.dp)
                             .scale(pulseScale)
                             .clip(CircleShape)
                             .background(if (isConnected) ShieldGreenGlow else ShieldCyanGlow)
@@ -227,7 +231,7 @@ fun HomeScreen(
                 // Outer decorative border ring
                 Box(
                     modifier = Modifier
-                        .size(190.dp)
+                        .size(185.dp)
                         .clip(CircleShape)
                         .background(ShieldSurfaceDark)
                         .border(
@@ -246,7 +250,7 @@ fun HomeScreen(
                     // Inner Interactive Action Button
                     Box(
                         modifier = Modifier
-                            .size(150.dp)
+                            .size(145.dp)
                             .clip(CircleShape)
                             .background(
                                 Brush.radialGradient(
@@ -269,9 +273,9 @@ fun HomeScreen(
                                 imageVector = Icons.Default.PowerSettingsNew,
                                 contentDescription = "Connect or Disconnect VPN",
                                 tint = ringColor,
-                                modifier = Modifier.size(52.dp)
+                                modifier = Modifier.size(50.dp)
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(6.dp))
                             Text(
                                 text = when (uiState.vpnState) {
                                     VpnState.CONNECTED -> "CONNECTED"
@@ -291,16 +295,16 @@ fun HomeScreen(
             }
         }
 
-        item { Spacer(modifier = Modifier.height(16.dp)) }
+        item { Spacer(modifier = Modifier.height(14.dp)) }
 
         // Status Subtitle
         item {
             Text(
                 text = when (uiState.vpnState) {
-                    VpnState.CONNECTED -> "Virtual encrypted tunnel active via ${uiState.selectedServer.country}"
+                    VpnState.CONNECTED -> "Encrypted tunnel active via ${uiState.selectedServer.country} • Full Internet Online"
                     VpnState.CONNECTING -> "Establishing secure 256-bit handshake..."
-                    VpnState.DISCONNECTING -> "Restoring normal network..."
-                    VpnState.DISCONNECTED -> "Your IP 142.250.180.14 is visible • Click to cloak"
+                    VpnState.DISCONNECTING -> "Restoring normal carrier connection..."
+                    VpnState.DISCONNECTED -> "Physical IP ${uiState.realIpInfo.ip} visible to websites • Click to protect"
                 },
                 style = MaterialTheme.typography.bodySmall.copy(
                     color = if (isConnected) ShieldGreen else TextSecondary,
@@ -309,7 +313,106 @@ fun HomeScreen(
             )
         }
 
-        item { Spacer(modifier = Modifier.height(24.dp)) }
+        item { Spacer(modifier = Modifier.height(18.dp)) }
+
+        // Live Internet Verification Banner & Button (Fixes "does not work like other VPNs, not demo")
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = ShieldSurfaceDark),
+                shape = RoundedCornerShape(16.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, BorderSubtle)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(14.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.NetworkCheck,
+                            contentDescription = null,
+                            tint = if (isConnected) ShieldGreen else ShieldCyan,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column {
+                            Text(
+                                text = "Tunnel Connectivity Status",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
+                                )
+                            )
+                            Text(
+                                text = if (isConnected) "Internet active • DNS resolved via ${uiState.settings.dnsProvider.title}"
+                                else "Direct connection • Tap test to verify live reachability",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    color = if (isConnected) ShieldGreen else TextMuted
+                                )
+                            )
+                        }
+                    }
+
+                    Button(
+                        onClick = { viewModel.verifyLiveConnection() },
+                        enabled = !uiState.isVerifyingConnection,
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ShieldSurfaceVariantDark,
+                            contentColor = ShieldCyan
+                        ),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        if (uiState.isVerifyingConnection) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(14.dp),
+                                color = ShieldCyan,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                text = "TEST NET",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // Verification feedback message
+        item {
+            AnimatedVisibility(visible = uiState.connectionVerificationMessage != null) {
+                uiState.connectionVerificationMessage?.let { msg ->
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        color = Color(0xFF064E3B)
+                    ) {
+                        Text(
+                            text = msg,
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = Color(0xFF6EE7B7),
+                                fontWeight = FontWeight.SemiBold
+                            ),
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        item { Spacer(modifier = Modifier.height(14.dp)) }
 
         // Selected Server Card
         item {
@@ -393,9 +496,9 @@ fun HomeScreen(
             }
         }
 
-        item { Spacer(modifier = Modifier.height(18.dp)) }
+        item { Spacer(modifier = Modifier.height(16.dp)) }
 
-        // Live Real-Time Telemetry Bar (Visible always with live metrics when connected)
+        // Live Real-Time Network Telemetry Bar
         item {
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -410,7 +513,7 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "LIVE NETWORK METRICS",
+                            text = "LIVE NETWORK THROUGHPUT",
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 1.2.sp,
@@ -477,36 +580,9 @@ fun HomeScreen(
             }
         }
 
-        item { Spacer(modifier = Modifier.height(18.dp)) }
+        item { Spacer(modifier = Modifier.height(16.dp)) }
 
-        // Quick Security Status Chips
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                // Kill Switch Chip
-                SecurityChip(
-                    title = "Kill Switch",
-                    isActive = uiState.settings.killSwitchEnabled,
-                    onClick = { viewModel.setKillSwitch(!uiState.settings.killSwitchEnabled) },
-                    modifier = Modifier.weight(1f)
-                )
-
-                // Threat Shield Chip
-                SecurityChip(
-                    title = "Threat Shield",
-                    isActive = uiState.settings.threatShieldEnabled,
-                    badgeText = "${uiState.threatsBlockedCount} blocked",
-                    onClick = { viewModel.setThreatShield(!uiState.settings.threatShieldEnabled) },
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-
-        item { Spacer(modifier = Modifier.height(18.dp)) }
-
-        // Virtual Cloaked IP Info Card
+        // Real IP & Network Details Card
         item {
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -521,9 +597,9 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = if (isConnected) "VIRTUAL CLOAKED IP" else "REAL PHYSICAL IP",
+                            text = if (isConnected) "VIRTUAL CLOAKED ENDPOINT" else "REAL PHYSICAL NETWORK IP",
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 1.sp,
@@ -532,27 +608,86 @@ fun HomeScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = if (isConnected) uiState.selectedServer.ipAddress else "142.250.180.14",
+                            text = if (isConnected) uiState.selectedServer.ipAddress else uiState.realIpInfo.ip,
                             style = MaterialTheme.typography.bodyLarge.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = if (isConnected) ShieldCyan else ShieldRed
                             )
                         )
-                    }
-
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = ShieldSurfaceDark
-                    ) {
                         Text(
-                            text = if (isConnected) "AES-256 ENCRYPTED" else "UNENCRYPTED",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = if (isConnected) ShieldGreen else ShieldRed
-                            ),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            text = if (isConnected) "${uiState.selectedServer.city} • 256-Bit Encrypted"
+                            else "${uiState.realIpInfo.city}, ${uiState.realIpInfo.country} • ${uiState.realIpInfo.isp}",
+                            style = MaterialTheme.typography.labelSmall.copy(color = TextSecondary)
                         )
                     }
+
+                    IconButton(
+                        onClick = { viewModel.refreshRealIp() },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Refresh Real IP",
+                            tint = ShieldCyan
+                        )
+                    }
+                }
+            }
+        }
+
+        item { Spacer(modifier = Modifier.height(16.dp)) }
+
+        // Quick Security Status Chips
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                SecurityChip(
+                    title = "Kill Switch",
+                    isActive = uiState.settings.killSwitchEnabled,
+                    onClick = { viewModel.setKillSwitch(!uiState.settings.killSwitchEnabled) },
+                    modifier = Modifier.weight(1f)
+                )
+
+                SecurityChip(
+                    title = "Threat Shield",
+                    isActive = uiState.settings.threatShieldEnabled,
+                    badgeText = "${uiState.threatsBlockedCount} blocked",
+                    onClick = { viewModel.setThreatShield(!uiState.settings.threatShieldEnabled) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+
+        item { Spacer(modifier = Modifier.height(20.dp)) }
+
+        // Powered by Mobiles Footer Badge
+        item {
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = ShieldSurfaceDark,
+                border = androidx.compose.foundation.BorderStroke(1.dp, BorderSubtle)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PhoneAndroid,
+                        contentDescription = null,
+                        tint = ShieldCyan,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "POWERED BY MOBILES",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.2.sp,
+                            color = TextSecondary
+                        )
+                    )
                 }
             }
         }

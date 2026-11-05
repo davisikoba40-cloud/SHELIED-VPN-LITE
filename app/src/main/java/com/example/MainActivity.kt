@@ -8,6 +8,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
@@ -49,6 +50,7 @@ import com.example.ui.screens.SecurityScreen
 import com.example.ui.screens.ServersScreen
 import com.example.ui.screens.SettingsScreen
 import com.example.ui.screens.SpeedTestScreen
+import com.example.ui.screens.SplashScreen
 import com.example.ui.theme.BorderSubtle
 import com.example.ui.theme.MyApplicationTheme
 import com.example.ui.theme.ShieldCyan
@@ -84,160 +86,171 @@ fun ShieldVpnApp(
         viewModel.onVpnPermissionResult(isGranted, context)
     }
 
-    // Hardware Back Button returns to Home Shield Tab
-    BackHandler(enabled = uiState.currentTab != NavTab.SHIELD) {
-        viewModel.selectTab(NavTab.SHIELD)
-    }
-
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = ShieldNavyDark,
-        bottomBar = {
-            NavigationBar(
-                modifier = Modifier
-                    .windowInsetsPadding(WindowInsets.navigationBars)
-                    .testTag("main_bottom_nav"),
-                containerColor = ShieldSurfaceDark,
-                tonalElevation = 8.dp
-            ) {
-                // Tab 1: Shield
-                NavigationBarItem(
-                    selected = uiState.currentTab == NavTab.SHIELD,
-                    onClick = { viewModel.selectTab(NavTab.SHIELD) },
-                    icon = {
-                        Icon(
-                            imageVector = if (uiState.currentTab == NavTab.SHIELD) Icons.Default.Shield else Icons.Outlined.Shield,
-                            contentDescription = "Shield"
-                        )
-                    },
-                    label = { Text("Shield", fontSize = 11.sp) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = ShieldNavyDark,
-                        indicatorColor = ShieldCyan,
-                        selectedTextColor = ShieldCyan,
-                        unselectedIconColor = TextMuted,
-                        unselectedTextColor = TextMuted
-                    ),
-                    modifier = Modifier.testTag("nav_tab_shield")
-                )
-
-                // Tab 2: Servers
-                NavigationBarItem(
-                    selected = uiState.currentTab == NavTab.SERVERS,
-                    onClick = { viewModel.selectTab(NavTab.SERVERS) },
-                    icon = {
-                        Icon(
-                            imageVector = if (uiState.currentTab == NavTab.SERVERS) Icons.Default.Public else Icons.Outlined.Public,
-                            contentDescription = "Servers"
-                        )
-                    },
-                    label = { Text("Servers", fontSize = 11.sp) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = ShieldNavyDark,
-                        indicatorColor = ShieldCyan,
-                        selectedTextColor = ShieldCyan,
-                        unselectedIconColor = TextMuted,
-                        unselectedTextColor = TextMuted
-                    ),
-                    modifier = Modifier.testTag("nav_tab_servers")
-                )
-
-                // Tab 3: Speed Test
-                NavigationBarItem(
-                    selected = uiState.currentTab == NavTab.SPEED_TEST,
-                    onClick = { viewModel.selectTab(NavTab.SPEED_TEST) },
-                    icon = {
-                        Icon(
-                            imageVector = if (uiState.currentTab == NavTab.SPEED_TEST) Icons.Default.Speed else Icons.Outlined.Speed,
-                            contentDescription = "Speed Test"
-                        )
-                    },
-                    label = { Text("Speed", fontSize = 11.sp) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = ShieldNavyDark,
-                        indicatorColor = ShieldCyan,
-                        selectedTextColor = ShieldCyan,
-                        unselectedIconColor = TextMuted,
-                        unselectedTextColor = TextMuted
-                    ),
-                    modifier = Modifier.testTag("nav_tab_speed")
-                )
-
-                // Tab 4: Security
-                NavigationBarItem(
-                    selected = uiState.currentTab == NavTab.SECURITY,
-                    onClick = { viewModel.selectTab(NavTab.SECURITY) },
-                    icon = {
-                        Icon(
-                            imageVector = if (uiState.currentTab == NavTab.SECURITY) Icons.Default.Security else Icons.Outlined.Security,
-                            contentDescription = "Security"
-                        )
-                    },
-                    label = { Text("Security", fontSize = 11.sp) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = ShieldNavyDark,
-                        indicatorColor = ShieldCyan,
-                        selectedTextColor = ShieldCyan,
-                        unselectedIconColor = TextMuted,
-                        unselectedTextColor = TextMuted
-                    ),
-                    modifier = Modifier.testTag("nav_tab_security")
-                )
-
-                // Tab 5: Settings
-                NavigationBarItem(
-                    selected = uiState.currentTab == NavTab.SETTINGS,
-                    onClick = { viewModel.selectTab(NavTab.SETTINGS) },
-                    icon = {
-                        Icon(
-                            imageVector = if (uiState.currentTab == NavTab.SETTINGS) Icons.Default.Tune else Icons.Outlined.Tune,
-                            contentDescription = "Settings"
-                        )
-                    },
-                    label = { Text("Settings", fontSize = 11.sp) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = ShieldNavyDark,
-                        indicatorColor = ShieldCyan,
-                        selectedTextColor = ShieldCyan,
-                        unselectedIconColor = TextMuted,
-                        unselectedTextColor = TextMuted
-                    ),
-                    modifier = Modifier.testTag("nav_tab_settings")
-                )
+    Crossfade(
+        targetState = uiState.showSplash,
+        label = "SplashTransition"
+    ) { isSplash ->
+        if (isSplash) {
+            SplashScreen(
+                onSplashFinished = { viewModel.dismissSplash() }
+            )
+        } else {
+            // Hardware Back Button returns to Home Shield Tab
+            BackHandler(enabled = uiState.currentTab != NavTab.SHIELD) {
+                viewModel.selectTab(NavTab.SHIELD)
             }
-        }
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            when (uiState.currentTab) {
-                NavTab.SHIELD -> HomeScreen(
-                    viewModel = viewModel,
-                    uiState = uiState,
-                    context = context,
-                    vpnLauncher = vpnPermissionLauncher,
-                    onNavigateTab = { tab -> viewModel.selectTab(tab) }
-                )
-                NavTab.SERVERS -> ServersScreen(
-                    viewModel = viewModel,
-                    uiState = uiState,
-                    context = context,
-                    vpnLauncher = vpnPermissionLauncher
-                )
-                NavTab.SPEED_TEST -> SpeedTestScreen(
-                    viewModel = viewModel,
-                    uiState = uiState
-                )
-                NavTab.SECURITY -> SecurityScreen(
-                    viewModel = viewModel,
-                    uiState = uiState
-                )
-                NavTab.SETTINGS -> SettingsScreen(
-                    viewModel = viewModel,
-                    uiState = uiState
-                )
+
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                containerColor = ShieldNavyDark,
+                bottomBar = {
+                    NavigationBar(
+                        modifier = Modifier
+                            .windowInsetsPadding(WindowInsets.navigationBars)
+                            .testTag("main_bottom_nav"),
+                        containerColor = ShieldSurfaceDark,
+                        tonalElevation = 8.dp
+                    ) {
+                        // Tab 1: Shield
+                        NavigationBarItem(
+                            selected = uiState.currentTab == NavTab.SHIELD,
+                            onClick = { viewModel.selectTab(NavTab.SHIELD) },
+                            icon = {
+                                Icon(
+                                    imageVector = if (uiState.currentTab == NavTab.SHIELD) Icons.Default.Shield else Icons.Outlined.Shield,
+                                    contentDescription = "Shield"
+                                )
+                            },
+                            label = { Text("Shield", fontSize = 11.sp) },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = ShieldNavyDark,
+                                indicatorColor = ShieldCyan,
+                                selectedTextColor = ShieldCyan,
+                                unselectedIconColor = TextMuted,
+                                unselectedTextColor = TextMuted
+                            ),
+                            modifier = Modifier.testTag("nav_tab_shield")
+                        )
+
+                        // Tab 2: Servers
+                        NavigationBarItem(
+                            selected = uiState.currentTab == NavTab.SERVERS,
+                            onClick = { viewModel.selectTab(NavTab.SERVERS) },
+                            icon = {
+                                Icon(
+                                    imageVector = if (uiState.currentTab == NavTab.SERVERS) Icons.Default.Public else Icons.Outlined.Public,
+                                    contentDescription = "Servers"
+                                )
+                            },
+                            label = { Text("Servers", fontSize = 11.sp) },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = ShieldNavyDark,
+                                indicatorColor = ShieldCyan,
+                                selectedTextColor = ShieldCyan,
+                                unselectedIconColor = TextMuted,
+                                unselectedTextColor = TextMuted
+                            ),
+                            modifier = Modifier.testTag("nav_tab_servers")
+                        )
+
+                        // Tab 3: Speed Test
+                        NavigationBarItem(
+                            selected = uiState.currentTab == NavTab.SPEED_TEST,
+                            onClick = { viewModel.selectTab(NavTab.SPEED_TEST) },
+                            icon = {
+                                Icon(
+                                    imageVector = if (uiState.currentTab == NavTab.SPEED_TEST) Icons.Default.Speed else Icons.Outlined.Speed,
+                                    contentDescription = "Speed Test"
+                                )
+                            },
+                            label = { Text("Speed", fontSize = 11.sp) },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = ShieldNavyDark,
+                                indicatorColor = ShieldCyan,
+                                selectedTextColor = ShieldCyan,
+                                unselectedIconColor = TextMuted,
+                                unselectedTextColor = TextMuted
+                            ),
+                            modifier = Modifier.testTag("nav_tab_speed")
+                        )
+
+                        // Tab 4: Security
+                        NavigationBarItem(
+                            selected = uiState.currentTab == NavTab.SECURITY,
+                            onClick = { viewModel.selectTab(NavTab.SECURITY) },
+                            icon = {
+                                Icon(
+                                    imageVector = if (uiState.currentTab == NavTab.SECURITY) Icons.Default.Security else Icons.Outlined.Security,
+                                    contentDescription = "Security"
+                                )
+                            },
+                            label = { Text("Security", fontSize = 11.sp) },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = ShieldNavyDark,
+                                indicatorColor = ShieldCyan,
+                                selectedTextColor = ShieldCyan,
+                                unselectedIconColor = TextMuted,
+                                unselectedTextColor = TextMuted
+                            ),
+                            modifier = Modifier.testTag("nav_tab_security")
+                        )
+
+                        // Tab 5: Settings
+                        NavigationBarItem(
+                            selected = uiState.currentTab == NavTab.SETTINGS,
+                            onClick = { viewModel.selectTab(NavTab.SETTINGS) },
+                            icon = {
+                                Icon(
+                                    imageVector = if (uiState.currentTab == NavTab.SETTINGS) Icons.Default.Tune else Icons.Outlined.Tune,
+                                    contentDescription = "Settings"
+                                )
+                            },
+                            label = { Text("Settings", fontSize = 11.sp) },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = ShieldNavyDark,
+                                indicatorColor = ShieldCyan,
+                                selectedTextColor = ShieldCyan,
+                                unselectedIconColor = TextMuted,
+                                unselectedTextColor = TextMuted
+                            ),
+                            modifier = Modifier.testTag("nav_tab_settings")
+                        )
+                    }
+                }
+            ) { innerPadding ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                ) {
+                    when (uiState.currentTab) {
+                        NavTab.SHIELD -> HomeScreen(
+                            viewModel = viewModel,
+                            uiState = uiState,
+                            context = context,
+                            vpnLauncher = vpnPermissionLauncher,
+                            onNavigateTab = { tab -> viewModel.selectTab(tab) }
+                        )
+                        NavTab.SERVERS -> ServersScreen(
+                            viewModel = viewModel,
+                            uiState = uiState,
+                            context = context,
+                            vpnLauncher = vpnPermissionLauncher
+                        )
+                        NavTab.SPEED_TEST -> SpeedTestScreen(
+                            viewModel = viewModel,
+                            uiState = uiState
+                        )
+                        NavTab.SECURITY -> SecurityScreen(
+                            viewModel = viewModel,
+                            uiState = uiState
+                        )
+                        NavTab.SETTINGS -> SettingsScreen(
+                            viewModel = viewModel,
+                            uiState = uiState
+                        )
+                    }
+                }
             }
         }
     }

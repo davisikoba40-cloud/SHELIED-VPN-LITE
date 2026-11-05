@@ -84,7 +84,7 @@ fun SpeedTestScreen(
             ) {
                 Column {
                     Text(
-                        text = "SPEED DIAGNOSTICS",
+                        text = "REAL SPEED TEST",
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Black,
                             letterSpacing = 1.2.sp,
@@ -92,7 +92,7 @@ fun SpeedTestScreen(
                         )
                     )
                     Text(
-                        text = "Real-time latency, jitter & throughput benchmark",
+                        text = "Live CDN throughput & HTTP latency benchmark",
                         style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary)
                     )
                 }
@@ -102,10 +102,10 @@ fun SpeedTestScreen(
                     color = ShieldSurfaceVariantDark
                 ) {
                     Text(
-                        text = "MULTI-STREAM",
+                        text = "LIVE TEST",
                         style = MaterialTheme.typography.labelSmall.copy(
                             fontWeight = FontWeight.Bold,
-                            color = ShieldCyan
+                            color = ShieldGreen
                         ),
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
@@ -119,10 +119,10 @@ fun SpeedTestScreen(
         item {
             val gaugeLabel = when (speedState.phase) {
                 SpeedTestPhase.IDLE -> "READY"
-                SpeedTestPhase.PING -> "CALCULATING PING..."
-                SpeedTestPhase.DOWNLOAD -> "DOWNLOAD BENCHMARK"
-                SpeedTestPhase.UPLOAD -> "UPLOAD BENCHMARK"
-                SpeedTestPhase.COMPLETED -> "RESULT COMPLETED"
+                SpeedTestPhase.PING -> "MEASURING HTTP PING..."
+                SpeedTestPhase.DOWNLOAD -> "STREAMING CDN CHUNKS"
+                SpeedTestPhase.UPLOAD -> "UPLOADING DATASTREAM"
+                SpeedTestPhase.COMPLETED -> "REAL BENCHMARK FINISHED"
             }
 
             SpeedometerGauge(
@@ -134,6 +134,18 @@ fun SpeedTestScreen(
                 },
                 maxSpeedMbps = 150f,
                 label = gaugeLabel
+            )
+        }
+
+        // Status text / live updates
+        item {
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = speedState.statusMessage,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = if (speedState.phase == SpeedTestPhase.COMPLETED) ShieldGreen else ShieldCyan,
+                    fontWeight = FontWeight.Medium
+                )
             )
         }
 
@@ -153,7 +165,7 @@ fun SpeedTestScreen(
             }
         }
 
-        item { Spacer(modifier = Modifier.height(24.dp)) }
+        item { Spacer(modifier = Modifier.height(22.dp)) }
 
         // Metrics 4-Box Grid
         item {
@@ -162,7 +174,7 @@ fun SpeedTestScreen(
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 SpeedMetricCard(
-                    title = "PING",
+                    title = "PING (LATENCY)",
                     value = if (speedState.pingMs > 0) "${speedState.pingMs} ms" else "--",
                     icon = Icons.Default.Timer,
                     iconColor = ShieldGreen,
@@ -187,7 +199,7 @@ fun SpeedTestScreen(
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 SpeedMetricCard(
-                    title = "DOWNLOAD",
+                    title = "DOWNLOAD (CDN)",
                     value = if (speedState.downloadMbps > 0) String.format("%.1f Mbps", speedState.downloadMbps) else "--",
                     icon = Icons.Default.ArrowDownward,
                     iconColor = ShieldCyan,
@@ -195,7 +207,7 @@ fun SpeedTestScreen(
                 )
 
                 SpeedMetricCard(
-                    title = "UPLOAD",
+                    title = "UPLOAD (PEAK)",
                     value = if (speedState.uploadMbps > 0) String.format("%.1f Mbps", speedState.uploadMbps) else "--",
                     icon = Icons.Default.ArrowUpward,
                     iconColor = Color(0xFF60A5FA),
@@ -204,7 +216,7 @@ fun SpeedTestScreen(
             }
         }
 
-        item { Spacer(modifier = Modifier.height(20.dp)) }
+        item { Spacer(modifier = Modifier.height(18.dp)) }
 
         // Current Testing Node Details Card
         item {
@@ -216,7 +228,7 @@ fun SpeedTestScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "TESTING ENDPOINT DETAILS",
+                        text = "NETWORK CARRIER & TEST NODE",
                         style = MaterialTheme.typography.labelSmall.copy(
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.2.sp,
@@ -241,7 +253,7 @@ fun SpeedTestScreen(
                                     )
                                 )
                                 Text(
-                                    text = "Endpoint IP: ${uiState.selectedServer.ipAddress}",
+                                    text = "Carrier: ${uiState.realIpInfo.isp} • IP: ${uiState.realIpInfo.ip}",
                                     style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary)
                                 )
                             }
@@ -252,7 +264,7 @@ fun SpeedTestScreen(
                             color = ShieldSurfaceVariantDark
                         ) {
                             Text(
-                                text = uiState.settings.protocol.displayName,
+                                text = "REAL CDN",
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     fontWeight = FontWeight.Bold,
                                     color = ShieldCyan
@@ -292,7 +304,7 @@ fun SpeedTestScreen(
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
-                        text = "TESTING IN PROGRESS...",
+                        text = "TESTING REAL NETWORK...",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Black,
                             letterSpacing = 1.sp
@@ -305,7 +317,7 @@ fun SpeedTestScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = if (speedState.phase == SpeedTestPhase.COMPLETED) "RUN TEST AGAIN" else "START SPEED TEST",
+                        text = if (speedState.phase == SpeedTestPhase.COMPLETED) "TEST REAL SPEED AGAIN" else "START REAL SPEED TEST",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Black,
                             letterSpacing = 1.sp

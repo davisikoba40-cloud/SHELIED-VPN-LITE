@@ -1,12 +1,11 @@
 package com.example.service
 
 import com.example.model.ConnectionStats
-import com.example.model.DnsProvider
+import com.example.model.RealIpInfo
 import com.example.model.ServerCategory
 import com.example.model.ServerLocation
 import com.example.model.SplitApp
 import com.example.model.VpnLogEntry
-import com.example.model.VpnProtocol
 import com.example.model.VpnSettings
 import com.example.model.VpnState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,6 +42,12 @@ object VpnStateManager {
     private val _settings = MutableStateFlow(VpnSettings())
     val settings: StateFlow<VpnSettings> = _settings.asStateFlow()
 
+    private val _realIpInfo = MutableStateFlow(RealIpInfo())
+    val realIpInfo: StateFlow<RealIpInfo> = _realIpInfo.asStateFlow()
+
+    private val _isInternetVerified = MutableStateFlow<Boolean?>(null)
+    val isInternetVerified: StateFlow<Boolean?> = _isInternetVerified.asStateFlow()
+
     private val _threatsBlocked = MutableStateFlow(1428)
     val threatsBlocked: StateFlow<Int> = _threatsBlocked.asStateFlow()
 
@@ -51,7 +56,7 @@ object VpnStateManager {
             VpnLogEntry(
                 timestamp = timeFormat.format(Date()),
                 tag = "CORE",
-                message = "Shield VPN security engine initialized. Ready to connect."
+                message = "Shield VPN security engine initialized. Powered by Mobiles."
             )
         )
     )
@@ -87,9 +92,21 @@ object VpnStateManager {
         _stats.value = newStats
     }
 
+    fun updateRealIpInfo(info: RealIpInfo) {
+        _realIpInfo.value = info
+        addLog("NETWORK", "Detected Physical Network IP: ${info.ip} (${info.isp}, ${info.country})")
+    }
+
+    fun setInternetVerified(verified: Boolean?) {
+        _isInternetVerified.value = verified
+        if (verified != null) {
+            addLog("VERIFY", if (verified) "Internet connectivity verified active through tunnel" else "Internet verification check failed")
+        }
+    }
+
     fun updateSettings(newSettings: VpnSettings) {
         _settings.value = newSettings
-        addLog("CONFIG", "Updated VPN settings: Protocol=${newSettings.protocol.displayName}, KillSwitch=${newSettings.killSwitchEnabled}, ThreatShield=${newSettings.threatShieldEnabled}")
+        addLog("CONFIG", "Updated VPN settings: Protocol=${newSettings.protocol.displayName}, Mode=${newSettings.tunnelMode.title}, KillSwitch=${newSettings.killSwitchEnabled}")
     }
 
     fun incrementThreatsBlocked() {

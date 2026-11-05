@@ -31,6 +31,26 @@ enum class DnsProvider(val title: String, val primaryIp: String, val secondaryIp
     CUSTOM("Custom DNS", "1.1.1.1", "", "Specify your own upstream DNS resolver")
 }
 
+enum class TunnelMode(val title: String, val description: String) {
+    SMART_DNS_SHIELD(
+        "Smart Defense Tunnel (High Speed)",
+        "Zero-leak encrypted DNS, threat filtering & unblocked web browsing for all apps without speed degradation"
+    ),
+    FULL_DEVICE_CLOAK(
+        "Full Device IP Cloak",
+        "Deep packet tunnel intercepting all device IPv4 routes through virtual interface"
+    )
+}
+
+data class RealIpInfo(
+    val ip: String = "Detecting...",
+    val city: String = "Detecting location...",
+    val region: String = "",
+    val country: String = "Global",
+    val isp: String = "Detecting carrier...",
+    val isLoaded: Boolean = false
+)
+
 data class ServerLocation(
     val id: String,
     val country: String,
@@ -51,8 +71,8 @@ data class ConnectionStats(
     val uploadSpeedKbps: Float = 0f,
     val totalDownloadedMb: Float = 0f,
     val totalUploadedMb: Float = 0f,
-    val virtualIp: String = "192.168.254.10",
-    val realIp: String = "142.250.180.14",
+    val virtualIp: String = "198.51.100.42",
+    val realIp: String = "Detecting...",
     val packetLossPercent: Float = 0.0f,
     val cipherSuite: String = "ChaCha20-Poly1305 (256-bit)"
 )
@@ -66,7 +86,8 @@ data class VpnSettings(
     val dnsProvider: DnsProvider = DnsProvider.CLOUDFLARE,
     val customDnsIp: String = "1.1.1.1",
     val mtuSize: Int = 1420,
-    val bypassLocalLan: Boolean = true
+    val bypassLocalLan: Boolean = true,
+    val tunnelMode: TunnelMode = TunnelMode.SMART_DNS_SHIELD
 )
 
 data class SplitApp(
@@ -92,7 +113,8 @@ data class SpeedTestState(
     val jitterMs: Int = 0,
     val downloadMbps: Float = 0f,
     val uploadMbps: Float = 0f,
-    val isRunning: Boolean = false
+    val isRunning: Boolean = false,
+    val statusMessage: String = "Ready to test"
 )
 
 enum class AuditStatus {
